@@ -1,9 +1,15 @@
 package square_fall_toolbox;
 
+import java.util.Iterator;
+
 import javafx.application.Application;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -54,6 +60,20 @@ public class UiTest extends Application{
 			addPalette(paletteGroup, i,i);			
 		}
 		
+		//Group boutonGroup = new Group();
+		
+		Button buttonRefresh = new Button("Refresh");
+		buttonRefresh.setId("Refresh");
+		Button buttonClear = new Button("Clear");
+		buttonClear.setId("Clear");
+		ButtonHandler buttonHandler = new ButtonHandler();
+		buttonRefresh.addEventHandler(MouseEvent.MOUSE_CLICKED, buttonHandler);
+		buttonClear.addEventHandler(MouseEvent.MOUSE_CLICKED, buttonHandler);
+		ButtonBar newButtonbar = new ButtonBar();
+		newButtonbar.setPadding(new Insets(10));
+		newButtonbar.getButtons().add(buttonRefresh);
+		newButtonbar.getButtons().add(buttonClear);
+		
 		//transformations
 		Rotate rotate = new Rotate();
 		rotate.setAngle(-45);
@@ -63,10 +83,13 @@ public class UiTest extends Application{
 	    squareGroup.setLayoutY(playfield.yLength()*50/Math.sqrt(2));
 		
 		paletteGroup.setLayoutX(700);
+		newButtonbar.setLayoutX(700);
+		newButtonbar.setLayoutY(300);
 		
 		//add subgroups to rootgroup
 		rootGroup.getChildren().add(squareGroup);
 		rootGroup.getChildren().add(paletteGroup);
+		rootGroup.getChildren().addAll(newButtonbar);
 		
 		//Creating a scene object 
 	    Scene scene = new Scene(rootGroup, 800, 600);
@@ -94,6 +117,7 @@ public class UiTest extends Application{
 	    rectangle.setWidth(45); 
 	    rectangle.setHeight(45);
 	    rectangle.setFill(getColor(sqaureColor));
+	    rectangle.setId(X+"-"+Y);
 	    
 	    squareHandler.setXY(X,Y);
 	    rectangle.addEventHandler(MouseEvent.MOUSE_CLICKED, squareHandler);
@@ -117,8 +141,14 @@ public class UiTest extends Application{
 	    groupe.getChildren().add(rectangle);
 	}
 	
-	public static void main(String[] args) {
-		launch(args);
+	public void refreshSquares() {
+		for(int i = 0; i<playfield.yLength(); i++) {
+			for(int j = 0; j<playfield.xLength(i); j++) {
+				Node rectangle = rootGroup.lookup("#"+j+"-"+i);
+				((Shape) rectangle).setFill(getColor(playfield.getRow(j, i)));
+			}
+		}
+
 	}
 	
 	public Color getColor(int i) {
@@ -138,13 +168,17 @@ public class UiTest extends Application{
 	    }
 	}
 	
+	public static void main(String[] args) {
+		launch(args);
+	}
+	
 	class SquareHandler implements EventHandler<MouseEvent> {
 		private int x,y; 
 		
 		@Override
 		public void handle(MouseEvent event) {
 		System.out.println("Handling event " + event.getEventType() + " on " + x + " " + y);
-		((Shape) event.getSource()).setFill(getColor(currentColor));
+		//((Shape) event.getSource()).setFill(getColor(currentColor));
 		playfield.setRow(x, y, currentColor);
 		System.out.println(playfield.toString());
 		event.consume();
@@ -172,7 +206,28 @@ public class UiTest extends Application{
 		
 	}
 	
+	class ButtonHandler implements EventHandler<MouseEvent> {
+		@Override
+		public void handle(MouseEvent event) {
+			switch (((Node) event.getSource()).getId()) {
+			case "Refresh": {
+				System.out.println("Refresh");
+				refreshSquares();
+				event.consume();
+				break;
+			}
+			case "Clear": {
+				System.out.println("Clear");
+				// todo
+				event.consume();
+				break;
+			}
+			default:
+				System.out.println("Pop");
+			}
 
+		}
+	}
 	
 }
 
